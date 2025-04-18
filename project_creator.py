@@ -17,7 +17,7 @@ import subprocess
 from pathlib import Path
 
 # GitHub repository where template files are stored
-GITHUB_REPO_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/Fapi_Project_Creator/main"
+GITHUB_REPO_URL = "https://raw.githubusercontent.com/GonzoDMX/Fapi_Project_Creator/refs/heads/main"
 
 # Directory structure to create
 PROJECT_STRUCTURE = [
