@@ -27,7 +27,7 @@ Fapi Project Creator helps you quickly bootstrap and manage FastAPI projects wit
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/Fapi_Project_Creator.git
+git clone https://github.com/GonzoDMX/Fapi_Project_Creator.git
 
 # Run the installation script
 cd Fapi_Project_Creator
@@ -148,7 +148,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://raw.githubusercontent.com/GonzoDMX/Fapi_Project_Creator/refs/heads/main/LICENSE) file for details.
 
 ## Contact
 
