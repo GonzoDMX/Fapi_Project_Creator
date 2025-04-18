@@ -13,6 +13,7 @@ import argparse
 import tempfile
 import datetime
 import requests
+import sys
 import subprocess
 from pathlib import Path
 
@@ -63,29 +64,43 @@ def download_template(template_path, output_path, project_name=None, author_name
         project_name: Name of the project for template substitution
         author_name: Author name for template substitution
     """
-    url = f"{GITHUB_REPO_URL}/templates/{template_path}"
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        content = response.text
-        
-        # Apply template substitutions
-        if project_name:
-            content = content.replace("{{PROJECT_NAME}}", project_name)
-        if author_name:
-            content = content.replace("{{AUTHOR_NAME}}", author_name)
-        content = content.replace("{{YEAR}}", str(datetime.datetime.now().year))
-        
-        # Create directory for the file if it doesn't exist
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        
-        # Write the file
-        with open(output_path, 'w') as f:
-            f.write(content)
-        return True
-    except requests.RequestException as e:
-        print(f"Failed to download template '{template_path}': {e}")
-        return False
+    # First try to load from config directory
+    config_dir = os.environ.get('FAPI_CONFIG_DIR')
+    
+    if config_dir and os.path.exists(os.path.join(config_dir, "templates", template_path)):
+        # Use local template from config directory
+        template_file = os.path.join(config_dir, "templates", template_path)
+        try:
+            with open(template_file, 'r') as f:
+                content = f.read()
+        except Exception as e:
+            print(f"Failed to read template '{template_path}' from config directory: {e}")
+            return False
+    else:
+        # Fallback to GitHub download
+        url = f"{GITHUB_REPO_URL}/templates/{template_path}"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            content = response.text
+        except requests.RequestException as e:
+            print(f"Failed to download template '{template_path}': {e}")
+            return False
+    
+    # Apply template substitutions
+    if project_name:
+        content = content.replace("{{PROJECT_NAME}}", project_name)
+    if author_name:
+        content = content.replace("{{AUTHOR_NAME}}", author_name)
+    content = content.replace("{{YEAR}}", str(datetime.datetime.now().year))
+    
+    # Create directory for the file if it doesn't exist
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
+    # Write the file
+    with open(output_path, 'w') as f:
+        f.write(content)
+    return True
 
 def create_empty_file(path):
     """Create an empty file, ensuring its directory exists."""
@@ -369,6 +384,19 @@ def run_dev_server(project_dir):
         return False
 
 def main():
+    # Set config directory in environment for template loading
+    config_dir = os.environ.get('FAPI_CONFIG_DIR')
+    if not config_dir:
+        # Try to find the config directory
+        possible_config_dirs = [
+            os.path.join(os.path.expanduser("~"), ".config", "fapi"),
+            "/etc/fapi"
+        ]
+        for dir_path in possible_config_dirs:
+            if os.path.exists(dir_path) and os.path.isdir(dir_path):
+                os.environ['FAPI_CONFIG_DIR'] = dir_path
+                break
+    
     # Create the top-level parser
     parser = argparse.ArgumentParser(
         description="FastAPI Project Management Tool",

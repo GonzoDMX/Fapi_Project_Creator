@@ -22,7 +22,7 @@ install_templates() {
     echo "Setting up templates..."
     
     # Copy templates from the local repository
-    cp -r "${REPO_DIR}/templates/"* "${config_dir}/templates/"
+    cp -r "${REPO_DIR}/templates/"* "${config_dir}/templates/" 2>/dev/null || true
     
     # Create an empty directory if licenses directory doesn't exist in the repo
     mkdir -p "${REPO_DIR}/templates/licenses"
@@ -72,7 +72,6 @@ perform_installation() {
 # Check for required dependencies
 echo "Checking dependencies..."
 command -v python3 >/dev/null 2>&1 || { echo "Python 3 is required but not installed. Aborting."; exit 1; }
-command -v pip3 >/dev/null 2>&1 || { echo "pip3 is required but not installed. Aborting."; exit 1; }
 
 # Check for main script file
 if [ ! -f "${REPO_DIR}/fapi-cli.py" ]; then
@@ -80,9 +79,36 @@ if [ ! -f "${REPO_DIR}/fapi-cli.py" ]; then
     exit 1
 fi
 
-# Install required Python packages
-echo "Installing required Python packages..."
-pip3 install --user requests >/dev/null || { echo "Failed to install Python dependencies. Aborting."; exit 1; }
+# Check for requests module without using pip
+python3 -c "import requests" 2>/dev/null
+if [ $? -ne 0 ]; then
+    echo "The Python 'requests' module is required but not installed."
+    echo "Due to PEP 668 restrictions on newer Ubuntu systems, we recommend one of these options:"
+    echo ""
+    echo "1. Install using apt (system-wide):"
+    echo "   sudo apt install python3-requests"
+    echo ""
+    echo "2. Use pipx for isolated environments (recommended):"
+    echo "   sudo apt install pipx"
+    echo "   pipx install requests"
+    echo ""
+    echo "3. Create a virtual environment (for development):"
+    echo "   python3 -m venv ~/.venv/fapi"
+    echo "   source ~/.venv/fapi/bin/activate"
+    echo "   pip install requests"
+    echo ""
+    read -p "Would you like to try installing with apt now? (y/n): " apt_install
+    if [[ "$apt_install" =~ ^[Yy]$ ]]; then
+        echo "Installing python3-requests with apt..."
+        sudo apt install -y python3-requests || {
+            echo "Failed to install python3-requests. Please install the 'requests' module using one of the methods above."
+            exit 1
+        }
+    else
+        echo "Please install the 'requests' module using one of the methods above and run this script again."
+        exit 1
+    fi
+fi
 
 # Check if running with sudo/root privileges
 if [ "$(id -u)" -eq 0 ]; then
