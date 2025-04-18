@@ -6,7 +6,7 @@ set -e
 # Define constants
 SCRIPT_NAME="fapi"
 INSTALL_DIR="/usr/local/bin"
-REPO_URL="https://github.com/YOUR_USERNAME/Fapi_Project_Creator"
+REPO_URL="https://github.com/GonzoDMX/Fapi_Project_Creator.git"
 
 # Check if running with sudo/root privileges
 if [ "$(id -u)" -ne 0 ]; then
